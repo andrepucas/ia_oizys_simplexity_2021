@@ -76,6 +76,7 @@ namespace Oyzis
 
         }
 
+        // Displays AI name as "G09_Oyzis_Vxx"
         public override string ToString() => "G09_" + base.ToString() + "_V0";
     }
 }
