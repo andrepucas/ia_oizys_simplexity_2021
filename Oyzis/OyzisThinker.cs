@@ -1,12 +1,4 @@
-﻿/// @file
-/// @brief This file contains the ColorShapeLinks AI presented in the video
-/// tutorial at https://youtu.be/ELrsLzX3qBY.
-///
-/// @author Nuno Fachada
-/// @date 2020, 2021
-/// @copyright [MPLv2](http://mozilla.org/MPL/2.0/)
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using ColorShapeLinks.Common;
 using ColorShapeLinks.Common.AI;
@@ -14,69 +6,71 @@ using System;
 
 namespace Oyzis
 {
-    /// <summary>
-    /// Very basic and minimally functional AI for ColorShapeLinks based on the
-    /// tutorial video at https://youtu.be/ELrsLzX3qBY.
-    /// </summary>
     public class OyzisThinker : AbstractThinker
     {
-        private List<FutureMove> possibleMoves;
-        private List<FutureMove> nonLosingMoves;
-        private Random random;
+        // Maximum search depth.
+        private const int maxDepth = 2;
 
-        public override void Setup(string str)
-        {
-            possibleMoves = new List<FutureMove>();
-            nonLosingMoves = new List<FutureMove>();
-            random = new Random();
-        }
+        // Displays AI name and current version as "G09_OYZIS_V(X)".
+        public override string ToString() => "G09_OYZIS" + "_V0";
 
+        // Executes a move.
         public override FutureMove Think(Board board, CancellationToken ct)
         {
+            (FutureMove move, float score) conclusion = Negamax(
+                board, ct, board.Turn, 0, float.NegativeInfinity, 
+                float.PositiveInfinity);
+
+            return conclusion.move;
+        }
+
+        // Negamax with alpha beta pruning.
+        private (FutureMove move, float score) Negamax(
+            Board board, CancellationToken ct, PColor turn, int depth, 
+            float alpha, float beta)
+        {
+            (FutureMove move, float score) currentMove;
+
             Winner winner;
-            PColor colorOfOurAI = board.Turn;
 
-            possibleMoves.Clear();
-            nonLosingMoves.Clear();
-
-            for (int col = 0; col < Cols; col++)
+            // In case of cancellation request, skips rest of algorithm.
+            if (ct.IsCancellationRequested)
             {
-                if (board.IsColumnFull(col)) continue;
-
-                for (int shp = 0; shp < 2; shp++)
-                {
-                    PShape shape = (PShape)shp;
-
-                    if (board.PieceCount(colorOfOurAI, shape) == 0) continue;
-
-                    possibleMoves.Add(new FutureMove(col, shape));
-
-                    board.DoMove(shape, col);
-
-                    winner = board.CheckWinner();
-
-                    // immediately
-                    board.UndoMove();
-
-                    if (winner.ToPColor() == colorOfOurAI)
-                    {
-                        return new FutureMove(col, shape);
-                    }
-                    else if (winner.ToPColor() != colorOfOurAI.Other())
-                    {
-                        nonLosingMoves.Add(new FutureMove(col, shape));
-                    }
-                }
+                // Makes no move.
+                currentMove = (FutureMove.NoMove, float.NaN);
             }
 
-            if (nonLosingMoves.Count > 0)
-                return nonLosingMoves[random.Next(nonLosingMoves.Count)];
+            // If game has ended, returns final score.
+            else if ((winner = board.CheckWinner()) != Winner.None)
+            {
+                // winning score
 
-            return possibleMoves[random.Next(possibleMoves.Count)];
+                // losing score
+
+                // draw score
+            }
+
+            // If maximum depth has been reached, get heuristic value.
+            else if (depth == maxDepth)
+            {
+                currentMove = (FutureMove.NoMove, Heuristic(board, turn));
+            }
+
+            // Board isn't final and maximum depth hasn't been reached.
+            else
+            {
+
+            }
+
+            // Returns move and its value.
+            return currentMove;
+        }
+
+        // Heuristic function
+        private float Heuristic(Board board, PColor turn)
+        {
 
         }
 
-        // Displays AI name as "G09_Oyzis_Vxx"
-        public override string ToString() => "G09_" + base.ToString() + "_V0";
     }
 }
