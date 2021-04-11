@@ -63,11 +63,16 @@ namespace TestOyzis
             Console.WriteLine("\n=== Board after three manual moves ===\n");
             ShowBoard(board);
 
+            // Starts timer
+            DateTime startTime = DateTime.Now;
+
             // What move would Oyzis make at this moment?
             FutureMove oyzisMove = oyzisThinker.Think(board, ct);
 
-            // Show move
-            Console.WriteLine($"-> Oyzis will play {oyzisMove}");
+            // Show move and time
+            Console.WriteLine(string.Format(
+                "-> Oyzis will play {0} after {1} ms.", 
+                oyzisMove, (DateTime.Now - startTime).TotalMilliseconds));
 
             // Make the move selected by Oyzis
             board.DoMove(oyzisMove.shape, oyzisMove.column);
