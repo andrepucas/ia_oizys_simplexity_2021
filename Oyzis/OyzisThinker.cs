@@ -125,7 +125,7 @@ namespace Oyzis
             return currentMove;
         }
 
-        // Tutorial Heuristic function
+        // Heuristic function used by Minimax AI (temp)
         private float Heuristic(Board board, PColor color)
         {
             // Distance between two points
