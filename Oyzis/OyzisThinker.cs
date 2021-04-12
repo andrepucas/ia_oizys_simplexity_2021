@@ -9,10 +9,10 @@ namespace Oyzis
     public class OyzisThinker : AbstractThinker
     {
         // Maximum search depth.
-        private const int maxDepth = 2;
+        private const int maxDepth = 3;
 
         // Displays AI name and current version as "G09_OYZIS_V(X)".
-        public override string ToString() => "G09_OYZIS" + "_V1";
+        public override string ToString() => "G09_OYZIS" + "_V2";
 
         // Executes a move.
         public override FutureMove Think(Board board, CancellationToken ct)
@@ -125,59 +125,58 @@ namespace Oyzis
             return currentMove;
         }
 
-        // Heuristic function used by Minimax AI (temp)
-        private float Heuristic(Board board, PColor color)
+        // Heuristic that iterates win corridors and changes its score 
+        // based on the pieces in each of those corridors.
+        private float Heuristic(Board board, PColor turn)
         {
-            // Distance between two points
-            float Dist(float x1, float y1, float x2, float y2)
+            // Heuristic score.
+            float score = 0;
+
+            // Iterate every win corridor in the board.
+            foreach (IEnumerable<Pos> corridor in board.winCorridors)
             {
-                return (float)Math.Sqrt(
-                    Math.Pow(x1 - x2, 2) + Math.Pow(y1 - y2, 2));
-            }
-
-            // Determine the center row
-            float centerRow = board.rows / 2;
-            float centerCol = board.cols / 2;
-
-            // Maximum points a piece can be awarded when it's at the center
-            float maxPoints = Dist(centerRow, centerCol, 0, 0);
-
-            // Current heuristic value
-            float h = 0;
-
-            // Loop through the board looking for pieces
-            for (int i = 0; i < board.rows; i++)
-            {
-                for (int j = 0; j < board.cols; j++)
+                // Iterate every position in the corridor.
+                foreach (Pos pos in corridor)
                 {
-                    // Get piece in current board position
-                    Piece? piece = board[i, j];
+                    // Try to get piece in current board position.
+                    Piece? piece = board[pos.row, pos.col];
 
-                    // Is there any piece there?
+                    // Check if there is a piece.
                     if (piece.HasValue)
                     {
-                        // If the piece is of our color, increment the
-                        // heuristic inversely to the distance from the center
-                        if (piece.Value.color == color)
-                            h += maxPoints - Dist(centerRow, centerCol, i, j);
-                        // Otherwise decrement the heuristic value using the
-                        // same criteria
-                        else
-                            h -= maxPoints - Dist(centerRow, centerCol, i, j);
-                        // If the piece is of our shape, increment the
-                        // heuristic inversely to the distance from the center
-                        if (piece.Value.shape == color.Shape())
-                            h += maxPoints - Dist(centerRow, centerCol, i, j);
-                        // Otherwise decrement the heuristic value using the
-                        // same criteria
-                        else
-                            h -= maxPoints - Dist(centerRow, centerCol, i, j);
+                        // If its the same color as our AI's,
+                        if (piece.Value.color == turn)
+                        {
+                            // Add 1 point.
+                            score += 1;
+                        }
+                        
+                        // If not,
+                        else 
+                        {
+                            // Remove 1 point
+                            score -= 1;
+                        }
+
+                        // If its the same shape as our AI's,
+                        if (piece.Value.shape == turn.Shape())
+                        {
+                            // Add 2 points, because shape > color.
+                            score += 2;
+                        }
+                        
+                        // If not,
+                        else 
+                        {
+                            // Remove 2 points.
+                            score -= 2;
+                        }
                     }
                 }
             }
-            // Return the final heuristic score for the given board
-            return h;
-        }
 
+            // Return the final heuristic score.
+            return score;
+        }
     }
 }
