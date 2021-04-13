@@ -11,19 +11,19 @@ using System.Threading;
 using ColorShapeLinks.Common;
 using ColorShapeLinks.Common.AI;
 using ColorShapeLinks.Common.Session;
-using Oyzis;
+using Oizys;
 
-namespace TestOyzis
+namespace TestOizys
 {
     /// <summary>
-    /// This is an example class for testing our Oyzis thinker in isolation.
+    /// This is an example class for testing our Oizys thinker in isolation.
     /// </summary>
     public static class Program
     {
         private static void Main(string[] args)
         {
             // ////////////////////////////////////////////////////////////// //
-            // Create an instance of our Oyzis thinker via ThinkerPrototype. //
+            // Create an instance of our Oizys thinker via ThinkerPrototype. //
             // If we created directly with new, it would not be properly      //
             // configured.                                                    //
             // ////////////////////////////////////////////////////////////// //
@@ -31,14 +31,14 @@ namespace TestOyzis
             // Create a configuration for a default ColorShapeLinks match
             MatchConfig mc = new MatchConfig();
 
-            // Get the fully qualified name of our basic Oyzis thinker
-            string oyzisFullName =  typeof(OyzisThinker).FullName;
+            // Get the fully qualified name of our basic Oizys thinker
+            string oizysFullName =  typeof(OizysThinker).FullName;
 
             // Create a prototype for our thinker
-            ThinkerPrototype tp = new ThinkerPrototype(oyzisFullName, "", mc);
+            ThinkerPrototype tp = new ThinkerPrototype(oizysFullName, "", mc);
 
-            // Create an instance of our basic Oyzis thinker
-            IThinker oyzisThinker = tp.Create();
+            // Create an instance of our basic Oizys thinker
+            IThinker oizysThinker = tp.Create();
 
             // //////////////////////////////////////////////////////// //
             // Create a board so we can test how our thinker will play. //
@@ -66,19 +66,19 @@ namespace TestOyzis
             // Starts timer
             DateTime startTime = DateTime.Now;
 
-            // What move would Oyzis make at this moment?
-            FutureMove oyzisMove = oyzisThinker.Think(board, ct);
+            // What move would Oizys make at this moment?
+            FutureMove oizysMove = oizysThinker.Think(board, ct);
 
             // Show move and time
             Console.WriteLine(string.Format(
-                "-> Oyzis will play {0} after {1} ms.", 
-                oyzisMove, (DateTime.Now - startTime).TotalMilliseconds));
+                "-> Oizys will play {0} after {1} ms.", 
+                oizysMove, (DateTime.Now - startTime).TotalMilliseconds));
 
-            // Make the move selected by Oyzis
-            board.DoMove(oyzisMove.shape, oyzisMove.column);
+            // Make the move selected by Oizys
+            board.DoMove(oizysMove.shape, oizysMove.column);
 
-            // Show board after Oyzis made its move
-            Console.WriteLine("\n=== Board after Oyzis made move ===\n");
+            // Show board after Oizys made its move
+            Console.WriteLine("\n=== Board after Oizys made move ===\n");
             ShowBoard(board);
         }
 
@@ -123,3 +123,4 @@ namespace TestOyzis
         }
     }
 }
+

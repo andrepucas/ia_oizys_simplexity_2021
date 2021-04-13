@@ -4,15 +4,15 @@ using ColorShapeLinks.Common;
 using ColorShapeLinks.Common.AI;
 using System;
 
-namespace Oyzis
+namespace Oizys
 {
-    public class OyzisThinker : AbstractThinker
+    public class OizysThinker : AbstractThinker
     {
         // Maximum search depth.
         private const int maxDepth = 3;
 
-        // Displays AI name and current version as "G09_OYZIS_V(X)".
-        public override string ToString() => "G09_OYZIS" + "_V2";
+        // Displays AI name and current version as "G09_OIZYS_V(X)".
+        public override string ToString() => "G09_OIZYS" + "_V2";
 
         // Executes a move.
         public override FutureMove Think(Board board, CancellationToken ct)
@@ -43,7 +43,7 @@ namespace Oyzis
             // If game has ended, returns final score.
             else if ((winner = board.CheckWinner()) != Winner.None)
             {
-                // Oyzis wins, returns maximum score.
+                // Oizys wins, returns maximum score.
                 if (winner.ToPColor() == turn)
                 {
                     currentMove = (FutureMove.NoMove, float.PositiveInfinity);
