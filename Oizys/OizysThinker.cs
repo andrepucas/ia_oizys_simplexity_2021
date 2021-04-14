@@ -12,7 +12,7 @@ namespace Oizys
         private const int maxDepth = 3;
 
         // Displays AI name and current version as "G09_OIZYS_V(X)".
-        public override string ToString() => "G09_OIZYS" + "_V2";
+        public override string ToString() => "G09_OIZYS" + "_V3";
 
         // Executes a move.
         public override FutureMove Think(Board board, CancellationToken ct)
@@ -97,6 +97,8 @@ namespace Oizys
                             board, ct, turn.Other(), depth +1, -beta, 
                             -alpha).score;
 
+                        //OnThinkingInfo(string.Format("Move: {0} at col{1} has {2} score",shape, c, score));
+
                         // Undo move.
                         board.UndoMove();
 
@@ -135,6 +137,9 @@ namespace Oizys
             // Iterate every win corridor in the board.
             foreach (IEnumerable<Pos> corridor in board.winCorridors)
             {
+                // Stores sequence of pieces found.
+                float sequence = 0;
+
                 // Iterate every position in the corridor.
                 foreach (Pos pos in corridor)
                 {
@@ -144,34 +149,50 @@ namespace Oizys
                     // Check if there is a piece.
                     if (piece.HasValue)
                     {
-                        // If its the same color as our AI's,
-                        if (piece.Value.color == turn)
+                        // Has same shape and color as player.
+                        if (piece.Value.shape == turn.Shape() && 
+                            piece.Value.color == turn)
+                        {
+                            // Add 2 points.
+                            score += 2;
+
+                            sequence += 1;
+                        }
+                        
+                        // Has same shape but different color as player.
+                        else if (piece.Value.shape == turn.Shape() && 
+                            piece.Value.color != turn)
                         {
                             // Add 1 point.
                             score += 1;
                         }
-                        
-                        // If not,
-                        else 
+
+                        // Has different shape but same color as player.
+                        else if (piece.Value.shape != turn.Shape() && 
+                            piece.Value.color == turn)
                         {
-                            // Remove 1 point
+                            // Remove 1 point.
                             score -= 1;
                         }
-
-                        // If its the same shape as our AI's,
-                        if (piece.Value.shape == turn.Shape())
-                        {
-                            // Add 2 points, because shape > color.
-                            score += 2;
-                        }
                         
-                        // If not,
-                        else 
+                        // Has different shape and color as player.
+                        else if (piece.Value.shape != turn.Shape() && 
+                            piece.Value.color != turn)
                         {
                             // Remove 2 points.
                             score -= 2;
+
+                            if (sequence < (board.piecesInSequence - 1))
+                            {
+                                sequence = 0;
+                            }
                         }
                     }
+                }
+
+                if (sequence >= (board.piecesInSequence - 1))
+                {
+                    score += 5; 
                 }
             }
 
