@@ -12,7 +12,7 @@ namespace Oizys
         private const int maxDepth = 3;
 
         // Displays AI name and current version as "G09_OIZYS_V(X)".
-        public override string ToString() => "G09_OIZYS" + "_V3";
+        public override string ToString() => "G09_OIZYS" + "_V4";
 
         // Executes a move.
         public override FutureMove Think(Board board, CancellationToken ct)
@@ -97,7 +97,7 @@ namespace Oizys
                             board, ct, turn.Other(), depth +1, -beta, 
                             -alpha).score;
 
-                        //OnThinkingInfo(string.Format("Move: {0} at col{1} has {2} score",shape, c, score));
+                        // OnThinkingInfo(string.Format("Move: {0} at col{1} has {2} score",shape, c, score));
 
                         // Undo move.
                         board.UndoMove();
@@ -133,18 +133,21 @@ namespace Oizys
         {
             // Heuristic score.
             float score = 0;
+            int sequenceToWin = board.piecesInSequence;
 
             // Iterate every win corridor in the board.
             foreach (IEnumerable<Pos> corridor in board.winCorridors)
             {
                 // Stores sequence of pieces found.
-                float sequence = 0;
+                float sequence = 0, range = 0;
 
                 // Iterate every position in the corridor.
                 foreach (Pos pos in corridor)
                 {
                     // Try to get piece in current board position.
                     Piece? piece = board[pos.row, pos.col];
+
+                    range += 1;
 
                     // Check if there is a piece.
                     if (piece.HasValue)
@@ -182,17 +185,27 @@ namespace Oizys
                             // Remove 2 points.
                             score -= 2;
 
-                            if (sequence < (board.piecesInSequence - 1))
+                            if (range < sequenceToWin)
                             {
                                 sequence = 0;
                             }
+
+                            range = 0;
                         }
                     }
-                }
 
-                if (sequence >= (board.piecesInSequence - 1))
-                {
-                    score += 5; 
+                    if (range == sequenceToWin)
+                    {
+                        if (sequence == (sequenceToWin - 1))
+                        {
+                            score += 10;
+                        }
+
+                        if (sequence == (sequenceToWin - 2))
+                        {
+                            score += 5;
+                        }
+                    }
                 }
             }
 

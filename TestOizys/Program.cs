@@ -57,11 +57,11 @@ namespace TestOizys
             // Make some moves manually
             board.DoMove(PShape.Round, 3);  // White plays (Round,col 3)
             board.DoMove(PShape.Square, 3); // Red   plays (Square,col 3)
-            board.DoMove(PShape.Round, 5);  // White plays (Round,col 5)
-            board.DoMove(PShape.Square, 3); // Red   plays (Square,col 3)
-            board.DoMove(PShape.Round, 1);  // White plays (Round,col 1)
-            board.DoMove(PShape.Square, 3); // Red   plays (Square,col 3)
-            board.DoMove(PShape.Round, 3); // White plays (Round,col 3)
+            // board.DoMove(PShape.Round, 5);  // White plays (Round,col 5)
+            // board.DoMove(PShape.Square, 3); // Red   plays (Square,col 3)
+            // board.DoMove(PShape.Round, 1);  // White plays (Round,col 1)
+            // board.DoMove(PShape.Square, 3); // Red   plays (Square,col 3)
+            // board.DoMove(PShape.Round, 3); // White plays (Round,col 3)
 
             // Show board after our three manual moves
             Console.WriteLine("\n=== Board after three manual moves ===\n");
