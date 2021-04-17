@@ -12,7 +12,7 @@ namespace Oizys
         private const int maxDepth = 3;
 
         // Displays AI name and current version as "G09_OIZYS_V(X)".
-        public override string ToString() => "G09_OIZYS" + "_V4";
+        public override string ToString() => "G09_OIZYS" + "_V5";
 
         // Executes a move.
         public override FutureMove Think(Board board, CancellationToken ct)
@@ -20,6 +20,8 @@ namespace Oizys
             (FutureMove move, float score) conclusion = Negamax(
                 board, ct, board.Turn, 0, float.NegativeInfinity, 
                 float.PositiveInfinity);
+
+            // OnThinkingInfo(string.Format("FINAL Move: {0} has {1} score",conclusion.move, conclusion.score));
 
             return conclusion.move;
         }
@@ -127,19 +129,27 @@ namespace Oizys
             return currentMove;
         }
 
-        // Heuristic that iterates win corridors and changes its score 
-        // based on the pieces in each of those corridors.
+        // Heuristic that iterates every win corridor and gives each a score 
+        // based on its pieces and sequences.
         private float Heuristic(Board board, PColor turn)
         {
+            // OnThinkingInfo($"HEURISTIC AS A {turn} {turn.Shape()}");
+            
             // Heuristic score.
             float score = 0;
-            int sequenceToWin = board.piecesInSequence;
 
             // Iterate every win corridor in the board.
             foreach (IEnumerable<Pos> corridor in board.winCorridors)
             {
-                // Stores sequence of pieces found.
-                float sequence = 0, range = 0;
+                // Size of current sequence and its board range, 
+                // starting at the first element.
+                int sequence = 0, range = 0;
+                
+                // Saves number of empty spaces before a sequence.
+                int emptyBehindSeq = 0, emptyRecent = 0;
+
+                // Saves info about the previous piece in the corridor
+                bool lastShape = false, lastColor = false;
 
                 // Iterate every position in the corridor.
                 foreach (Pos pos in corridor)
@@ -147,9 +157,10 @@ namespace Oizys
                     // Try to get piece in current board position.
                     Piece? piece = board[pos.row, pos.col];
 
+                    // Increase range.
                     range += 1;
 
-                    // Check if there is a piece.
+                    // If there is a piece in this position.
                     if (piece.HasValue)
                     {
                         // Has same shape and color as player.
@@ -159,51 +170,184 @@ namespace Oizys
                             // Add 2 points.
                             score += 2;
 
-                            sequence += 1;
+                            // If it's within range of a sequence or if there is
+                            // no active sequence before it.
+                            if (range <= WinSequence && sequence != 0)
+                            {
+                                // Increment sequence.
+                                sequence    += 1;
+                            }
+
+                            // If it's out of range or there's no active sequence.
+                            else
+                            {
+                                // Start a new sequence.
+                                sequence    = 1;
+                                range       = 1;
+                            }
+
+                            // Remember this piece.
+                            lastShape = true;
+                            lastColor = true;
                         }
                         
                         // Has same shape but different color as player.
                         else if (piece.Value.shape == turn.Shape() && 
-                            piece.Value.color != turn)
+                                 piece.Value.color != turn)
                         {
                             // Add 1 point.
                             score += 1;
+
+                            // If the previous piece had the same shape and this 
+                            // piece is within a sequence's range.
+                            if (lastShape && range <= WinSequence)
+                            {
+                                // Increment sequence.
+                                sequence    += 1;
+                            }
+                            
+                            // If not, this is the start of a new sequence.
+                            else
+                            {
+                                // If there was another sequence before.
+                                if (sequence != 0)
+                                {
+                                    // Check for empty positions immediately behind 
+                                    // this piece and set it as new empty behind sequence.
+                                    emptyBehindSeq = emptyRecent;
+                                }
+                                
+                                // Start a new sequence.
+                                sequence    = 1;
+                                range       = 1;
+                            }
+                            
+                            // Remember this piece.
+                            lastShape = true;
+                            lastColor = false;
                         }
 
                         // Has different shape but same color as player.
                         else if (piece.Value.shape != turn.Shape() && 
-                            piece.Value.color == turn)
+                                 piece.Value.color == turn)
                         {
                             // Remove 1 point.
                             score -= 1;
+
+                            // If the previous piece had the same color and this 
+                            // piece is within a sequence's range.
+                            if (lastColor && range <= WinSequence)
+                            {
+                                // Increment sequence.
+                                sequence    += 1;
+                            }
+                            
+                            // If not, this is the start of a new sequence.
+                            else
+                            {
+                                // If there was another sequence before.
+                                if (sequence != 0)
+                                {
+                                    // Check for empty positions immediately behind 
+                                    // this piece and set it as new empty behind ( this sequence).
+                                    emptyBehindSeq = emptyRecent;
+                                }
+
+                                // Start a new sequence.
+                                sequence    = 1;
+                                range       = 1;
+                            }
+
+                            // Remember this piece.
+                            lastShape = false;
+                            lastColor = true;
                         }
                         
                         // Has different shape and color as player.
                         else if (piece.Value.shape != turn.Shape() && 
-                            piece.Value.color != turn)
+                                 piece.Value.color != turn)
                         {
                             // Remove 2 points.
                             score -= 2;
 
-                            if (range < sequenceToWin)
-                            {
-                                sequence = 0;
-                            }
+                            // Reset any possible existing sequences and ranges.
+                            sequence    = 0;
+                            range       = 0;
 
-                            range = 0;
+                            // Because we no longer have a sequence, we don't
+                            // need to remember how many empty pieces were behind it.
+                            emptyBehindSeq = 0;
+
+                            // Remember this piece.
+                            lastShape = false;
+                            lastColor = false;
+                        }
+
+                        // We found a piece, so there won't be empty positions 
+                        // behind the next piece.
+                        emptyRecent = 0;
+                    }
+
+                    // If we didn't find a piece.
+                    else
+                    {
+                        // Keep track of this empty position.
+                        emptyRecent += 1;
+
+                        // If there isn't an active sequence.
+                        if (sequence == 0)
+                        {
+                            // Keep track of this empty position.
+                            emptyBehindSeq += 1;
                         }
                     }
 
-                    if (range == sequenceToWin)
+                    // If we're on a sequence higher than 1 and within it's range.
+                    if (sequence > 1 && range <= WinSequence)
                     {
-                        if (sequence == (sequenceToWin - 1))
+                        // Cycles through all possible sequence sizes (2+).
+                        for (int i = 2; i <= WinSequence; i++)
                         {
-                            score += 10;
-                        }
+                            // Check for sequence with i size.
+                            if (sequence == i)
+                            {
+                                // If it has equal range, the pieces are after
+                                // eachother, which is good, but this should only be valuable
+                                // if we have enough space to complete the sequence.
+                                // Because we still don't know what will be in the next  
+                                // position, we only consider spaces behind the sequence.
+                                if (range == i && emptyBehindSeq >= (WinSequence - i))
+                                {
+                                    // Increase score based on the sequence size.
+                                    score += (i * 3);
+                                }
 
-                        if (sequence == (sequenceToWin - 2))
-                        {
-                            score += 5;
+                                // If the range isn't equal, we check empty positions. 
+                                // Because range < sequence is impossible, we know 
+                                // this position has to be after the sequence,
+                                // so we can check if the sequence will have any space after.
+                                else if (!piece.HasValue)
+                                {
+                                    // Check if there is enough space ahead of 
+                                    // the sequence OR if there is enough combined 
+                                    // space before and after the sequence.
+                                    if (emptyRecent >= (WinSequence - i) || 
+                                        (emptyRecent + emptyBehindSeq) >= (WinSequence - i))
+                                    {
+                                        // Increase score based on the sequence size.
+                                        score += (i * 3);
+                                    }
+                                }
+
+                                // The final alternative is that we have a sequence
+                                // with empty positions in between.
+                                else
+                                {
+                                    // The bigger the distance in between the 
+                                    // sequence, the less it will be worth.
+                                    score += (i * 3 - range);
+                                }
+                            }
                         }
                     }
                 }
