@@ -97,6 +97,10 @@ After discovering this, we started working on a new version (V5), looking for a 
 
 For more detailed information on this heuristic, visit branch [V5] of this repository.
 
+### Results
+
+For some unknown reason to us, V5 actually underperformed in our tests, losing to MinimaxD2 once, when V4 had won both games. The AI also made some weird unexpected moves in the beggining of games and elongated games when it could win them way earlier. For this reason, we decided to stick with V4 for the competition.
+
 ## References
 
 * [TicTacToe Minimax], by [Nuno Fachada].
