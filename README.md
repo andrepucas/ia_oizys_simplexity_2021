@@ -90,6 +90,12 @@ After discovering this, we started working on a new version (V5), looking for a 
   * If not: `sequence: 1`, `range: 1`.
 * When a "bad" piece is found:
   * `sequence: 0`, `range: 0`.
+* When checking sequences:
+   * `score` is only given if there is enough space to complete the sequence.
+   * Bigger sequences get more `score`.
+   * Sequences together get more `score` than sequences separated by empty spaces.
+
+For more detailed information on this heuristic, visit branch [V5] of this repository.
 
 ## References
 
@@ -106,6 +112,7 @@ After discovering this, we started working on a new version (V5), looking for a 
 * Second year Videogames students @ [Universidade Lusófona de Humanidades e Tecnologias][ULHT]
 
 [ColorShapeLinks AI competition]:https://github.com/VideojogosLusofona/color-shape-links-ai-competition
+[V5]:https://github.com/andrepucas/ia_oizys_simplexity_2021/tree/V5
 [TicTacToe Minimax]:https://github.com/fakenmc/AIUnityExamples
 
 [Afonso Lage (a21901381)]:https://github.com/AfonsoLage-boop
