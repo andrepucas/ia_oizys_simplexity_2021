@@ -97,8 +97,6 @@ namespace Oizys
                             board, ct, turn.Other(), depth +1, -beta, 
                             -alpha).score;
 
-                        // OnThinkingInfo(string.Format("Move: {0} at col{1} has {2} score",shape, c, score));
-
                         // Undo move.
                         board.UndoMove();
 
@@ -129,11 +127,12 @@ namespace Oizys
 
         // Heuristic that iterates win corridors and changes its score 
         // based on the pieces in each of those corridors.
+        // Aditionally, this version also gives extra value to absolute sequences 
+        // (sequences of pieces with same color and shape).
         private float Heuristic(Board board, PColor turn)
         {
             // Heuristic score.
             float score = 0;
-            int sequenceToWin = board.piecesInSequence;
 
             // Iterate every win corridor in the board.
             foreach (IEnumerable<Pos> corridor in board.winCorridors)
@@ -185,7 +184,7 @@ namespace Oizys
                             // Remove 2 points.
                             score -= 2;
 
-                            if (range < sequenceToWin)
+                            if (range < WinSequence)
                             {
                                 sequence = 0;
                             }
@@ -194,14 +193,19 @@ namespace Oizys
                         }
                     }
 
-                    if (range == sequenceToWin)
+                    if (range == WinSequence)
                     {
-                        if (sequence == (sequenceToWin - 1))
+                        if (sequence == WinSequence)
+                        {
+                            score += 50;
+                        }
+                        
+                        if (sequence == (WinSequence - 1))
                         {
                             score += 10;
                         }
 
-                        if (sequence == (sequenceToWin - 2))
+                        if (sequence == (WinSequence - 2))
                         {
                             score += 5;
                         }
