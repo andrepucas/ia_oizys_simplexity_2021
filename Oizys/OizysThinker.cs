@@ -8,9 +8,9 @@ namespace Oizys
 {
     public class OizysThinker : AbstractThinker
     {
-        // Maximum search depth.
-        private const int maxDepth = 3;
-
+        // Search depth.
+        private const int maxDepth = 2;
+        
         // Displays AI name and current version as "G09_OIZYS_V(X)".
         public override string ToString() => "G09_OIZYS" + "_V5";
 
@@ -20,8 +20,6 @@ namespace Oizys
             (FutureMove move, float score) conclusion = Negamax(
                 board, ct, board.Turn, 0, float.NegativeInfinity, 
                 float.PositiveInfinity);
-
-            // OnThinkingInfo(string.Format("FINAL Move: {0} has {1} score",conclusion.move, conclusion.score));
 
             return conclusion.move;
         }
@@ -99,8 +97,6 @@ namespace Oizys
                             board, ct, turn.Other(), depth +1, -beta, 
                             -alpha).score;
 
-                        // OnThinkingInfo(string.Format("Move: {0} at col{1} has {2} score",shape, c, score));
-
                         // Undo move.
                         board.UndoMove();
 
@@ -133,8 +129,6 @@ namespace Oizys
         // based on its pieces and sequences.
         private float Heuristic(Board board, PColor turn)
         {
-            // OnThinkingInfo($"HEURISTIC AS A {turn} {turn.Shape()}");
-            
             // Heuristic score.
             float score = 0;
 
@@ -170,8 +164,7 @@ namespace Oizys
                             // Add 2 points.
                             score += 2;
 
-                            // If it's within range of a sequence or if there is
-                            // no active sequence before it.
+                            // If it's within range of a sequence.
                             if (range <= WinSequence && sequence != 0)
                             {
                                 // Increment sequence.
@@ -312,40 +305,48 @@ namespace Oizys
                             if (sequence == i)
                             {
                                 // If it has equal range, the pieces are after
-                                // eachother, which is good, but this should only be valuable
-                                // if we have enough space to complete the sequence.
-                                // Because we still don't know what will be in the next  
-                                // position, we only consider spaces behind the sequence.
-                                if (range == i && emptyBehindSeq >= (WinSequence - i))
+                                // eachother, which is good. 
+                                if (range == sequence)
                                 {
-                                    // Increase score based on the sequence size.
-                                    score += (i * 3);
-                                }
-
-                                // If the range isn't equal, we check empty positions. 
-                                // Because range < sequence is impossible, we know 
-                                // this position has to be after the sequence,
-                                // so we can check if the sequence will have any space after.
-                                else if (!piece.HasValue)
-                                {
-                                    // Check if there is enough space ahead of 
-                                    // the sequence OR if there is enough combined 
-                                    // space before and after the sequence.
-                                    if (emptyRecent >= (WinSequence - i) || 
-                                        (emptyRecent + emptyBehindSeq) >= (WinSequence - i))
+                                    // However, this should only have value
+                                    // if we have enough space to complete the sequence.
+                                    // Because we still don't know what will be in the following
+                                    // positions, we only consider spaces behind the sequence.
+                                    if (emptyBehindSeq >= (WinSequence - i))
                                     {
                                         // Increase score based on the sequence size.
-                                        score += (i * 3);
+                                        score += (i * i) * 2;
                                     }
                                 }
 
-                                // The final alternative is that we have a sequence
-                                // with empty positions in between.
+                                // If not.
                                 else
                                 {
-                                    // The bigger the distance in between the 
-                                    // sequence, the less it will be worth.
-                                    score += (i * 3 - range);
+                                    // Because 'range < sequence' is impossible
+                                    // in an active sequence, any empty positions
+                                    // found now will always be after the sequence.
+                                    if (!piece.HasValue)
+                                    {
+                                        // Check if there is enough space after
+                                        // OR before and after combined to 
+                                        // complete the sequence.
+                                        if (emptyRecent >= (WinSequence - i) || 
+                                            (emptyRecent + emptyBehindSeq) >= (WinSequence - i))
+                                        {
+                                            // Increase score based on the sequence size.
+                                            score += (i * i) * 2;
+                                        }
+                                    }
+                                    
+                                    // If the position is not empty, in an active 
+                                    // sequence this means that we have empty 
+                                    // positions inside it.
+                                    else
+                                    {
+                                        // The bigger the distance inside the 
+                                        // sequence, the less it will be worth.
+                                        score += (i * i) * 2 - range;
+                                    }
                                 }
                             }
                         }
